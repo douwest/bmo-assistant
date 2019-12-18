@@ -1,47 +1,35 @@
 import * as Stomp from 'stompjs';
 import * as SockJS from 'sockjs-client';
 import { AppComponent } from '../app.component';
+import { environment } from 'src/environments/environment';
 
 export class WebSocketAPI {
-    webSocketEndPoint = 'http://localhost:8080/ws';
     topic = '/topic/conversation';
     stompClient: any;
-    appComponent: AppComponent;
     message: any;
 
-    constructor(appComponent: AppComponent) {
-        this.appComponent = appComponent;
-    }
+    constructor(private appComponent: AppComponent) {}
 
-    _connect() {
+    connect() {
         console.log('Initialize WebSocket Connection');
-        const ws = new SockJS(this.webSocketEndPoint);
+        const ws = new SockJS(environment.webSocketEndPoint);
         this.stompClient = Stomp.over(ws);
         const _this = this;
-        _this.stompClient.connect({}, function(frame) {
-            _this.stompClient.subscribe(_this.topic, function(sdkEvent) {
+        _this.stompClient.connect({}, (frame) => {
+            _this.stompClient.subscribe(_this.topic, (sdkEvent) => {
                 _this.onMessageReceived(sdkEvent);
             });
         }, this.errorCallBack);
     }
 
-    _disconnect() {
+    disconnect() {
         if (this.stompClient !== null) {
             this.stompClient.disconnect();
         }
         console.log('Disconnected');
     }
 
-    // on error, schedule a reconnection attempt
-    errorCallBack(error) {
-        console.log('errorCallBack -> ' + error);
-        setTimeout(() => {
-            this._connect();
-        }, 5000);
-    }
-
-     // Send message to sever via web socket
-    _send(message) {
+    send(message) {
         console.log('calling logout api via web socket');
         this.stompClient.send('/app/hello', {}, JSON.stringify(message));
     }
@@ -49,5 +37,12 @@ export class WebSocketAPI {
     onMessageReceived(message) {
         console.log('Message Received from Server :: ' + message);
         this.appComponent.handleMessage(JSON.stringify(message.body));
+    }
+
+    errorCallBack(error) {
+        console.log('errorCallBack -> ' + error);
+        setTimeout(() => {
+            this.connect();
+        }, 5000);
     }
 }

@@ -17,15 +17,15 @@ export class AppComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.webSocketAPI = new WebSocketAPI(this);
-    this.webSocketAPI._connect();
+    this.webSocketAPI.connect();
   }
 
   ngOnDestroy() {
-    this.webSocketAPI._disconnect();
+    this.webSocketAPI.disconnect();
   }
 
   sendMessage() {
-    this.webSocketAPI._send(this.name);
+    this.webSocketAPI.send(this.name);
   }
 
   handleMessage(message) {
